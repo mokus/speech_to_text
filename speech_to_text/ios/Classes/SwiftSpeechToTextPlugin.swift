@@ -10,6 +10,7 @@ public enum SwiftSpeechToTextMethods: String {
     case listen
     case stop
     case cancel
+
     case locales
     case unknown // just for testing
 }
