@@ -1,6 +1,23 @@
 # Changelog
 
-## 6.1.1
+## 6.3.0
+
+### New
+* New `changePauseFor` method allows the pause duration to be modified during a 
+`listen` session. 
+
+### Fix
+  * Documentation cleanup and improvements, thanks @Bungeefan
+  * Crash on Android versions 11 and below
+
+## 6.2.0
+
+### New
+* Upgrades and fixes for Flutter 3.0
+
+### Fix
+  * Error status is cleared on each `listen` call. 
+  
 
 ### Fix
   * Bluetooth permission check no longer crashes on some Android devices
