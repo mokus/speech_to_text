@@ -155,27 +155,8 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
             result( has )
         }
     }
-
-    private func activateAudioSession() {
-        do {
-                rememberedAudioCategory = self.audioSession.category
-                rememberedAudioCategoryOptions = self.audioSession.categoryOptions
-                try self.audioSession.setCategory(AVAudioSession.Category.playAndRecord, options: [.allowBluetoothA2DP,.mixWithOthers])
-                //            try self.audioSession.setMode(AVAudioSession.Mode.measurement)
-//                if ( sampleRate > 0 ) {
-//                    try self.audioSession.setPreferredSampleRate(Double(sampleRate))
-//                }
-                try self.audioSession.setMode(AVAudioSession.Mode.default)
-                try self.audioSession.setActive(true)
-    //            , options: .notifyOthersOnDeactivation
-        } catch {
-            os_log("Error setting up audio session: %{PUBLIC}@", log: pluginLog, type: .error, error.localizedDescription)
-        }
-
-    }
     
     private func initialize( _ result: @escaping FlutterResult) {
-        activateAudioSession()
         var success = false
         let status = SFSpeechRecognizer.authorizationStatus()
         switch status {
@@ -387,7 +368,16 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
                                          details: nil ))
                 }
             }
-            activateAudioSession()
+            rememberedAudioCategory = self.audioSession.category
+            rememberedAudioCategoryOptions = self.audioSession.categoryOptions
+            try self.audioSession.setCategory(AVAudioSession.Category.playAndRecord, options: [.allowBluetoothA2DP,.mixWithOthers])
+            //            try self.audioSession.setMode(AVAudioSession.Mode.measurement)
+            if ( sampleRate > 0 ) {
+                try self.audioSession.setPreferredSampleRate(Double(sampleRate))
+            }
+            try self.audioSession.setMode(AVAudioSession.Mode.default)
+            try self.audioSession.setActive(true)
+//            , options: .notifyOthersOnDeactivation
             if let sound = listeningSound {
                 self.onPlayEnd = {()->Void in
                     if ( !self.failedListen ) {
