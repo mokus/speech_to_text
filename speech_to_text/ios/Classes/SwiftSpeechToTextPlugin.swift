@@ -220,6 +220,7 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
     }
     
     private func setupSpeechRecognition( _ result: @escaping FlutterResult) {
+        initializeAudioSession()
         setupRecognizerForLocale( locale: Locale.current )
         guard recognizer != nil else {
             sendBoolResult( false, result );
@@ -344,6 +345,25 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
         onPlayEnd = nil
         listening = false
     }
+
+    private func initializeAudioSession(){
+        do {
+
+            rememberedAudioCategory = self.audioSession.category
+            rememberedAudioCategoryOptions = self.audioSession.categoryOptions
+            try self.audioSession.setCategory(AVAudioSession.Category.playAndRecord, options: [.allowBluetooth,.allowBluetoothA2DP,.mixWithOthers,.defaultToSpeaker])
+            //            try self.audioSession.setMode(AVAudioSession.Mode.measurement)
+        //        if ( sampleRate > 0 ) {
+        //            try self.audioSession.setPreferredSampleRate(Double(sampleRate))
+        //        }
+            try self.audioSession.setMode(AVAudioSession.Mode.default)
+            try self.audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+        }
+        catch {
+            os_log("Error initializing audio session: %{PUBLIC}@", log: pluginLog, type: .error, error.localizedDescription)
+        }
+
+    }
     
     private func listenForSpeech( _ result: @escaping FlutterResult, localeStr: String?, partialResults: Bool, onDevice: Bool, listenMode: ListenMode, sampleRate: Int ) {
         if ( nil != currentTask || listening ) {
@@ -368,15 +388,7 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
                                          details: nil ))
                 }
             }
-            rememberedAudioCategory = self.audioSession.category
-            rememberedAudioCategoryOptions = self.audioSession.categoryOptions
-            try self.audioSession.setCategory(AVAudioSession.Category.playAndRecord, options: [.allowBluetooth,.allowBluetoothA2DP,.mixWithOthers,.defaultToSpeaker])
-            //            try self.audioSession.setMode(AVAudioSession.Mode.measurement)
-            if ( sampleRate > 0 ) {
-                try self.audioSession.setPreferredSampleRate(Double(sampleRate))
-            }
-            try self.audioSession.setMode(AVAudioSession.Mode.default)
-            try self.audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+            initializeAudioSession()
             if let sound = listeningSound {
                 self.onPlayEnd = {()->Void in
                     if ( !self.failedListen ) {
@@ -387,6 +399,7 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
                 }
                 sound.play()
             }
+
             self.audioEngine.reset();
             if(inputNode?.inputFormat(forBus: 0).channelCount == 0){
                 throw SpeechToTextError.runtimeError("Not enough available inputs.")
