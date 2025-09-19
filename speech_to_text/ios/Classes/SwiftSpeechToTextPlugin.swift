@@ -159,6 +159,7 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
     private func initialize(_ result: @escaping FlutterResult) {
         var success = false
         let status = SFSpeechRecognizer.authorizationStatus()
+        initializeAudioSession();
         switch status {
         case SFSpeechRecognizerAuthorizationStatus.notDetermined:
             SFSpeechRecognizer.requestAuthorization({ (status) -> Void in
@@ -274,7 +275,6 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
             stopCurrentListen()
             sendBoolResult(true, result);
         }
-        enterPlaybackPhase()
     }
 
     private func cancelSpeech(_ result: @escaping FlutterResult) {
@@ -345,32 +345,16 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
 
             rememberedAudioCategory = self.audioSession.category
             rememberedAudioCategoryOptions = self.audioSession.categoryOptions
-            try self.audioSession.setCategory(AVAudioSession.Category.playAndRecord, options: [.allowBluetooth, .allowBluetoothA2DP, .defaultToSpeaker])//.mixWithOthers,
-            // try self.audioSession.setMode(AVAudioSession.Mode.voiceChat)
-            //        if ( sampleRate > 0 ) {
-            //            try self.audioSession.setPreferredSampleRate(Double(sampleRate))
-            //        }
-            try self.audioSession.setMode(AVAudioSession.Mode.default)
-            try self.audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-            // if let builtIn = av.availableInputs?.first(where: { $0.portType == .builtInMic }) {
-            //     try av.setPreferredInput(builtIn) // prevents BT HFP switch
-            // }
-        } catch {
-            os_log("Error initializing audio session: %{PUBLIC}@", log: pluginLog, type: .error, error.localizedDescription)
-        }
-
-    }
-
-    private func enterPlaybackPhase() {
-        do {
-            try self.audioSession.setCategory(.playback,
-                                              mode: .default,
-                                              options: [.allowBluetoothA2DP, .defaultToSpeaker])
+            try self.audioSession.setCategory(AVAudioSession.Category.playAndRecord
+                , mode: .default
+                , options: [.allowBluetooth
+                            , .defaultToSpeaker
+            ])
             try self.audioSession.setActive(true)
-            // try self.audioSession.setPreferredInput(nil) // don’t pin any BT input
         } catch {
             os_log("Error initializing audio session: %{PUBLIC}@", log: pluginLog, type: .error, error.localizedDescription)
         }
+
     }
 
     private func listenForSpeech(_ result: @escaping FlutterResult, localeStr: String?, partialResults: Bool, onDevice: Bool, listenMode: ListenMode, sampleRate: Int) {
