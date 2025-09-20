@@ -343,14 +343,14 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
     private func initializeAudioSession() {
         do {
 
-            rememberedAudioCategory = self.audioSession.category
-            rememberedAudioCategoryOptions = self.audioSession.categoryOptions
-            try self.audioSession.setCategory(AVAudioSession.Category.playAndRecord
-                , mode: .default
-                , options: [.allowBluetooth
-                            , .defaultToSpeaker
-            ])
-            try self.audioSession.setActive(true)
+//            rememberedAudioCategory = self.audioSession.category
+//            rememberedAudioCategoryOptions = self.audioSession.categoryOptions
+//            try self.audioSession.setCategory(AVAudioSession.Category.playAndRecord
+//                , mode: .voiceChat
+//                , options: [.allowBluetooth
+//                            , .defaultToSpeaker
+//            ])
+//            try self.audioSession.setActive(true)
         } catch {
             os_log("Error initializing audio session: %{PUBLIC}@", log: pluginLog, type: .error, error.localizedDescription)
         }
