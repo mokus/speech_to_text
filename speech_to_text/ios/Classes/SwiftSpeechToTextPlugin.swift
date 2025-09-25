@@ -159,7 +159,6 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
     private func initialize(_ result: @escaping FlutterResult) {
         var success = false
         let status = SFSpeechRecognizer.authorizationStatus()
-        initializeAudioSession();
         switch status {
         case SFSpeechRecognizerAuthorizationStatus.notDetermined:
             SFSpeechRecognizer.requestAuthorization({ (status) -> Void in
@@ -340,18 +339,23 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
         listening = false
     }
 
-    private func initializeAudioSession() {
+    private func initializeAudioSession(){
+        if !ProcessInfo.processInfo.isiOSAppOnMac {
+            return;
+        }
         do {
 
-//            rememberedAudioCategory = self.audioSession.category
-//            rememberedAudioCategoryOptions = self.audioSession.categoryOptions
-//            try self.audioSession.setCategory(AVAudioSession.Category.playAndRecord
-//                , mode: .voiceChat
-//                , options: [.allowBluetooth
-//                            , .defaultToSpeaker
-//            ])
-//            try self.audioSession.setActive(true)
-        } catch {
+            rememberedAudioCategory = self.audioSession.category
+            rememberedAudioCategoryOptions = self.audioSession.categoryOptions
+            try self.audioSession.setCategory(AVAudioSession.Category.playAndRecord, options: [.allowBluetooth,.allowBluetoothA2DP,.mixWithOthers,.defaultToSpeaker])
+            //            try self.audioSession.setMode(AVAudioSession.Mode.measurement)
+            //        if ( sampleRate > 0 ) {
+            //            try self.audioSession.setPreferredSampleRate(Double(sampleRate))
+            //        }
+            try self.audioSession.setMode(AVAudioSession.Mode.default)
+            try self.audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+        }
+        catch {
             os_log("Error initializing audio session: %{PUBLIC}@", log: pluginLog, type: .error, error.localizedDescription)
         }
 
