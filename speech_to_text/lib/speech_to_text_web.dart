@@ -134,25 +134,25 @@ class SpeechToTextPlugin extends SpeechToTextPlatform {
   /// crash with `sampleRate != device's supported sampleRate`, try 44100 if seeing
   /// crashes
   ///
-  @override
-  Future<bool> listen(
-      {String? localeId,
-      partialResults = true,
-      onDevice = false,
-      int listenMode = 0,
-      sampleRate = 0}) async {
-    if (null == _webSpeech) return false;
-    _webSpeech!.onResult.listen((speechEvent) => _onResult(speechEvent));
-    _webSpeech!.interimResults = partialResults;
-    _webSpeech!.continuous = partialResults;
-    if (null != localeId) {
-      _webSpeech!.lang = localeId;
-    }
-    _doneSent = false;
-    _resultSent = false;
-    _webSpeech!.start();
-    return true;
-  }
+  // @override
+  // Future<bool> listen(
+  //     {String? localeId,
+  //     partialResults = true,
+  //     onDevice = false,
+  //     int listenMode = 0,
+  //     sampleRate = 0}) async {
+  //   if (null == _webSpeech) return false;
+  //   _webSpeech!.onResult.listen((speechEvent) => _onResult(speechEvent));
+  //   _webSpeech!.interimResults = partialResults;
+  //   _webSpeech!.continuous = partialResults;
+  //   if (null != localeId) {
+  //     _webSpeech!.lang = localeId;
+  //   }
+  //   _doneSent = false;
+  //   _resultSent = false;
+  //   _webSpeech!.start();
+  //   return true;
+  // }
 
   /// returns the list of speech locales available on the device.
   ///
