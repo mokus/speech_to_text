@@ -479,6 +479,8 @@ public class SpeechToTextPlugin: NSObject, FlutterPlugin {
 
     currentRequest = nil
     currentTask = nil
+    inputNode = nil
+    audioEngine = nil
     onPlayEnd = nil
     listening = false
     stopping = false
