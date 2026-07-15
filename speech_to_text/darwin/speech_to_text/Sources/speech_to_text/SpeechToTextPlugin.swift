@@ -383,7 +383,7 @@ public class SpeechToTextPlugin: NSObject, FlutterPlugin {
   }
 
   private func stopSpeech(_ result: @escaping FlutterResult) {
-    if !listening {
+    if !hasAllocatedRecognitionResources {
       sendBoolResult(false, result)
       return
     }
@@ -404,7 +404,7 @@ public class SpeechToTextPlugin: NSObject, FlutterPlugin {
   }
 
   private func cancelSpeech(_ result: @escaping FlutterResult) {
-    if !listening {
+    if !hasAllocatedRecognitionResources {
       sendBoolResult(false, result)
       return
     }
@@ -422,6 +422,10 @@ public class SpeechToTextPlugin: NSObject, FlutterPlugin {
       stopCurrentListen()
       sendBoolResult(true, result)
     }
+  }
+
+  private var hasAllocatedRecognitionResources: Bool {
+    listening || currentTask != nil || audioEngine != nil || inputNode != nil
   }
 
   private func stopAllPlayers() {
