@@ -88,9 +88,10 @@ public class SpeechToTextPlugin: NSObject, FlutterPlugin {
   private var cancelSound: AVAudioPlayer?
 
   #if os(iOS)
-    private var rememberedAudioCategory: AVAudioSession.Category?
-    private var rememberedAudioCategoryOptions: AVAudioSession.CategoryOptions?
-    private var managesAudioSession = false
+    // The audio session is owned by the host app: it keeps one play-and-record
+    // session configured and active for recognition, playback, and lock-screen
+    // mode. The plugin must never reconfigure or deactivate it — doing so while
+    // the device is locked makes the session unrecoverable until foreground.
     private let audioSession = AVAudioSession.sharedInstance()
   #endif
 
@@ -454,30 +455,6 @@ public class SpeechToTextPlugin: NSObject, FlutterPlugin {
       os_log(
         "Error removing trap: %{PUBLIC}@", log: pluginLog, type: .error, error.localizedDescription)
     }
-    #if os(iOS)
-      if managesAudioSession {
-        do {
-          if let rememberedAudioCategory = rememberedAudioCategory,
-            let rememberedAudioCategoryOptions = rememberedAudioCategoryOptions
-          {
-            try self.audioSession.setCategory(
-              rememberedAudioCategory, options: rememberedAudioCategoryOptions)
-          }
-        } catch {
-          os_log(
-            "Error stopping listen: %{PUBLIC}@", log: pluginLog, type: .error,
-            error.localizedDescription)
-        }
-        do {
-          try self.audioSession.setActive(false, options: .notifyOthersOnDeactivation)
-        } catch {
-          os_log(
-            "Error deactivation: %{PUBLIC}@", log: pluginLog, type: .info,
-            error.localizedDescription)
-        }
-      }
-      managesAudioSession = false
-    #endif
     self.invokeFlutter(
       SwiftSpeechToTextCallbackMethods.notifyStatus, arguments: SpeechToTextStatus.done.rawValue)
 
@@ -524,27 +501,6 @@ public class SpeechToTextPlugin: NSObject, FlutterPlugin {
         }
       }
 
-      #if os(iOS)
-        // A host app may keep one play-and-record session active for recognition,
-        // playback, and lock-screen controls. Do not override or deactivate it.
-        managesAudioSession = self.audioSession.category != .playAndRecord
-        if managesAudioSession {
-          rememberedAudioCategory = self.audioSession.category
-          rememberedAudioCategoryOptions = self.audioSession.categoryOptions
-          try self.audioSession.setCategory(
-            AVAudioSession.Category.playAndRecord,
-            options: [.defaultToSpeaker, .allowBluetooth, .allowBluetoothA2DP, .mixWithOthers])
-          //            try self.audioSession.setMode(AVAudioSession.Mode.measurement)
-          if sampleRate > 0 {
-            try self.audioSession.setPreferredSampleRate(Double(sampleRate))
-          }
-          try self.audioSession.setMode(AVAudioSession.Mode.default)
-          try self.audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-          if #available(iOS 13.0, *) {
-            try self.audioSession.setAllowHapticsAndSystemSoundsDuringRecording(enableHaptics)
-          }
-        }
-      #endif
       if let sound = listeningSound {
         self.onPlayEnd = { () -> Void in
           if !self.failedListen {
